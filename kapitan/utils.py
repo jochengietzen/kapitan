@@ -591,7 +591,7 @@ def safe_copy_tree(src, dst):
     return outputs
 
 
-def name_replace_func_by_kwargs(
+def name_replace_by_func(
     name: str,
     replacement_function: Optional[Callable[[str], str]],
 ) -> str:
