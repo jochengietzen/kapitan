@@ -31,7 +31,13 @@ from kapitan.inputs.kadet import Kadet
 from kapitan.inputs.external import External
 from kapitan.remoteinventory.fetch import fetch_inventories, list_sources
 from kapitan.resources import inventory_reclass
-from kapitan.utils import dictionary_hash, directory_hash, hashable_lru_cache, JSONNET_AVAILABLE
+from kapitan.utils import (
+    JSONNET_AVAILABLE,
+    dictionary_hash,
+    directory_hash,
+    generate_replace_func_comp_settings,
+    hashable_lru_cache,
+)
 from kapitan.validator.kubernetes_validator import KubernetesManifestValidator
 
 from reclass.errors import NotFoundError, ReclassException
@@ -460,6 +466,14 @@ def compile_target(target_obj, search_paths, compile_path, ref_controller, globa
             raise CompileError(err_msg.format(input_type))
 
         # logger.info("about to compile %s ", target_obj["target_full_path"])
+
+        # generate replacement_function in kwargs if required
+        generate_replace_func_comp_settings(
+            kwargs=kwargs,
+            replace_settings=comp_obj.get("replace_in_name", None),
+            repl_func_key="replace_func",
+        )
+
         input_compiler.make_compile_dirs(target_name, output_path)
         input_compiler.compile_obj(comp_obj, ext_vars, **kwargs)
 

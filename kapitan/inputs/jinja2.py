@@ -10,7 +10,7 @@ import os
 
 from kapitan.inputs.base import CompiledFile, InputType
 from kapitan.resources import inventory
-from kapitan.utils import render_jinja2
+from kapitan.utils import name_replace_by_func, render_jinja2
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,11 @@ class Jinja2(InputType):
         for item_key, item_value in render_jinja2(
             file_path, context, jinja2_filters=jinja2_filters, search_paths=self.search_paths
         ).items():
-            full_item_path = os.path.join(compile_path, item_key)
+            # Generate file name with name replacement function
+            item_key_ = name_replace_by_func(
+                name=item_key, replacement_function=kwargs.get("replace_func", None)
+            )
+            full_item_path = os.path.join(compile_path, item_key_)
 
             with CompiledFile(
                 full_item_path, self.ref_controller, mode="w", reveal=reveal, target_name=target_name
