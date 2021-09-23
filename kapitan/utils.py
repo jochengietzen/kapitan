@@ -611,7 +611,7 @@ def name_replace_by_func(
 def generate_replace_func_comp_settings(
     kwargs: dict,
     replace_settings: Optional[dict] = None,
-    replace_key_name: str = "replace_in_name",
+    repl_func_key: str = "replace_func",
 ) -> None:
     """This function generates a replacement function according to the given
     settings. These settings will usually be retrieved from the component object.
@@ -632,18 +632,19 @@ def generate_replace_func_comp_settings(
     for a replacement function are matched, the callable function will be written
     to kwargs['replace_func'].
 
+    The 'repl_func_key' is a default value to which key in the kwargs dict the
+    function should be written to.
     """
     if replace_settings is None:
         return
 
-    repl_func_key = "replace_func"
     comp_specific_kwargs = {}
     if "find" in replace_settings and "replace" in replace_settings:
         find_, replace_ = replace_settings["find"], replace_settings["replace"]
 
         # define simple replace function
         def _repl_func(file_name: str):
-            file_name.replace(find_, replace_)
+            return file_name.replace(find_, replace_)
 
         comp_specific_kwargs[repl_func_key] = _repl_func
     elif "regex_find" in replace_settings and "regex_replace" in replace_settings:
@@ -664,7 +665,7 @@ def generate_replace_func_comp_settings(
         comp_specific_kwargs[repl_func_key] = _repl_func
     else:
         err_msg = (
-            f"Invalid settings for {replace_key_name} field. "
+            f"Invalid settings for replacement. "
             "You need to define (find, replace) or (regex_find, regex_replace)"
         )
         raise CompileError(err_msg)
