@@ -10,6 +10,8 @@ from __future__ import print_function
 import collections
 import json
 import logging
+from typing import Optional, Callable
+
 import math
 import os
 import stat
@@ -587,3 +589,85 @@ def safe_copy_tree(src, dst):
             outputs.append(dst_name)
 
     return outputs
+
+
+def name_replace_func_by_kwargs(
+    name: str,
+    replacement_function: Optional[Callable[[str], str]],
+) -> str:
+    """Checks for a replacement function in the kwargs and changes the
+    name accordingly. If replacement_function is None, the name will be
+    returned unchanged.
+
+    'name' must be a string, while 'replacement_function' can either
+    be a callable function taking one string and returning a string
+    or None to represent the identity.
+
+    Returns the replaced or original name as str
+    """
+    return name if replacement_function is None else replacement_function(name)
+
+
+def generate_replace_func_comp_settings(
+    kwargs: dict,
+    replace_settings: Optional[dict] = None,
+    replace_key_name: str = "replace_in_name",
+) -> None:
+    """This function generates a replacement function according to the given
+    settings. These settings will usually be retrieved from the component object.
+
+    The possible configurations are as follows:
+        - With the two keys 'find' and 'replace', you will receive a simple string
+          replacement function
+        - With the two keys 'regex_find' and 'regex_replace', you will receive a
+          replacement function, that will perform a re.sub function
+
+    The specified keys are first-match-served, meaning if all keys are present, the
+    first complete set of keys will be evaluated.
+    The keys need to be in the top level of replace_settings. E.g.
+    ::
+        replace_settings = {"find": "foo", "replace": "bar"}
+
+    The result will be written to the kwargs dictionary in-place. If the criteria
+    for a replacement function are matched, the callable function will be written
+    to kwargs['replace_func'].
+
+    """
+    if replace_settings is None:
+        return
+
+    repl_func_key = "replace_func"
+    comp_specific_kwargs = {}
+    if "find" in replace_settings and "replace" in replace_settings:
+        find_, replace_ = replace_settings["find"], replace_settings["replace"]
+
+        # define simple replace function
+        def _repl_func(file_name: str):
+            file_name.replace(find_, replace_)
+
+        comp_specific_kwargs[repl_func_key] = _repl_func
+    elif "regex_find" in replace_settings and "regex_replace" in replace_settings:
+        import re
+
+        find_, replace_ = replace_settings["regex_find"], replace_settings["regex_replace"]
+
+        # try to compile the given search regex
+        try:
+            find_compiled = re.compile(find_)
+        except re.error as err:
+            raise CompileError(err.msg) from err
+
+        # define re replace function
+        def _repl_func(file_name: str):
+            return re.sub(find_compiled, replace_, file_name)
+
+        comp_specific_kwargs[repl_func_key] = _repl_func
+    else:
+        err_msg = (
+            f"Invalid settings for {replace_key_name} field. "
+            "You need to define (find, replace) or (regex_find, regex_replace)"
+        )
+        raise CompileError(err_msg)
+
+    # update original kwargs with comp_specific_kwargs
+    kwargs.update(comp_specific_kwargs)
