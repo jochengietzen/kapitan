@@ -1,0 +1,33 @@
+parameters:
+  foo:
+    bar: biz
+  kapitan:
+    compile:
+      - output_path: .
+        input_type: jinja2
+        input_paths:
+          - docs/find_replace/README_1.md.jinja2
+        replace_in_name:
+          find: ".jinja2"
+          replace: ""
+      - output_path: .
+        input_type: jinja2
+        input_paths:
+          - docs/find_replace/README_2.md.jinja2
+        replace_in_name:
+          regex_find: "(.*).jinja2"
+          regex_replace: '\g<1>'
+      - output_path: .
+        input_type: jinja2
+        input_paths:
+          - docs/find_replace/README_SINGLE_SOURCE.md.jinja2
+        replace_in_name:
+          regex_find: "README([^.])*(.*).jinja2"
+          regex_replace: 'README_ONE\g<2>'
+      - output_path: .
+        input_type: jinja2
+        input_paths:
+          - docs/find_replace/README_SINGLE_SOURCE.md.jinja2
+        replace_in_name:
+          regex_find: "README([^.])*(.*).jinja2"
+          regex_replace: 'README_TWO\g<2>'

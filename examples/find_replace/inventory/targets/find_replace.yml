@@ -1,0 +1,6 @@
+classes:
+  - common
+  - find_replace
+
+parameters:
+  target_name: find_replace
