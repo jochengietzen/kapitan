@@ -209,6 +209,22 @@ class CompileTerraformTest(unittest.TestCase):
         reset_cache()
 
 
+class CompileFindReplaceTest(unittest.TestCase):
+    def setUp(self):
+        os.chdir(os.getcwd() + "/examples/find_replace/")
+
+    def test_compile(self):
+        sys.argv = ["kapitan", "compile"]
+        main()
+        compiled_dir_hash = directory_hash(os.getcwd() + "/compiled")
+        test_compiled_dir_hash = directory_hash(os.getcwd() + "/../../tests/test_find_replace_compiled")
+        self.assertEqual(compiled_dir_hash, test_compiled_dir_hash)
+
+    def tearDown(self):
+        os.chdir(os.getcwd() + "/../../")
+        reset_cache()
+
+
 class PlainOutputTest(unittest.TestCase):
     def setUp(self):
         os.chdir(os.getcwd() + "/examples/docker/")
